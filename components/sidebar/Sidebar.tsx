@@ -6,6 +6,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { FilterSection, type ActiveFilters } from './FilterSection';
+import { UserButton } from '@/components/auth/UserButton';
 
 type CalendarView = '1W' | '2W' | '4W';
 
@@ -31,6 +32,12 @@ export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: S
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[60px] bg-card border-r border-border flex flex-col items-center py-6 gap-6 z-50">
+      {/* User Button */}
+      <UserButton />
+
+      {/* Divider */}
+      <div className="w-8 h-[1px] bg-border" />
+
       {/* Logo MotoEvents */}
       <Link 
         href="/" 

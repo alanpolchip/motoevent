@@ -4,6 +4,7 @@ import './globals.css';
 import { APP_NAME, SEO } from '@/lib/constants';
 import { RoleSelector } from '@/components/debug/RoleSelector';
 import { ThemeProvider } from '@/components/theme-provider';
+import { AuthProvider } from '@/lib/auth/AuthContext';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -105,8 +106,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <RoleSelector />
+          <AuthProvider>
+            {children}
+            <RoleSelector />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

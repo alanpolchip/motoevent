@@ -19,27 +19,36 @@ export interface Database {
           email: string;
           full_name: string | null;
           avatar_url: string | null;
-          role: 'user' | 'moderator' | 'admin';
+          role: 'viewer' | 'contributor' | 'moderator' | 'admin';
+          can_submit_events: boolean;
+          can_moderate_events: boolean;
           created_at: string;
           updated_at: string;
+          last_login_at: string | null;
         };
         Insert: {
           id: string;
           email: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          role?: 'user' | 'moderator' | 'admin';
+          role?: 'viewer' | 'contributor' | 'moderator' | 'admin';
+          can_submit_events?: boolean;
+          can_moderate_events?: boolean;
           created_at?: string;
           updated_at?: string;
+          last_login_at?: string | null;
         };
         Update: {
           id?: string;
           email?: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          role?: 'user' | 'moderator' | 'admin';
+          role?: 'viewer' | 'contributor' | 'moderator' | 'admin';
+          can_submit_events?: boolean;
+          can_moderate_events?: boolean;
           created_at?: string;
           updated_at?: string;
+          last_login_at?: string | null;
         };
       };
       events: {
