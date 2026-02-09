@@ -1,0 +1,477 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================
+   ESTILOS GLOBALES - MotoEvents Calendar
+   ============================================ */
+
+@layer base {
+  :root {
+    /* Variables de color shadcn/ui */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 24 100% 50%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 10%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 24 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ============================================
+   FULLCALENDAR CUSTOM STYLES
+   ============================================ */
+
+.fc {
+  --fc-border-color: hsl(var(--border));
+  --fc-button-bg-color: hsl(var(--primary));
+  --fc-button-border-color: hsl(var(--primary));
+  --fc-button-hover-bg-color: hsl(24 100% 45%);
+  --fc-button-hover-border-color: hsl(24 100% 45%);
+  --fc-button-active-bg-color: hsl(24 100% 40%);
+  --fc-button-active-border-color: hsl(24 100% 40%);
+  --fc-event-bg-color: hsl(var(--primary));
+  --fc-event-border-color: hsl(var(--primary));
+  --fc-today-bg-color: hsl(var(--primary) / 0.1);
+}
+
+.fc .fc-button {
+  @apply px-4 py-2 rounded-md font-medium transition-colors;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  @apply shadow-inner;
+}
+
+.fc .fc-toolbar-title {
+  @apply text-xl font-bold text-foreground;
+}
+
+.fc .fc-col-header-cell {
+  @apply py-4 font-semibold text-sm uppercase tracking-wide bg-muted/30;
+}
+
+.fc .fc-daygrid-day {
+  @apply transition-colors hover:bg-muted/30;
+  position: relative;
+}
+
+.fc .fc-daygrid-day-frame {
+  min-height: 120px !important;
+  height: 100% !important;
+  position: relative;
+}
+
+/* Day number - positioned above event, top right, white text, transparent bg */
+.fc .fc-daygrid-day-top {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.fc .fc-daygrid-day-number {
+  @apply text-xs font-bold;
+  color: white;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  padding: 2px 6px;
+  background: transparent;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  color: #f97316;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border: 1px solid var(--fc-border-color);
+}
+
+.fc-theme-standard td, .fc-theme-standard th {
+  border: 1px solid var(--fc-border-color);
+}
+
+.fc .fc-daygrid-body {
+  width: 100% !important;
+}
+
+.fc .fc-daygrid-body table {
+  width: 100% !important;
+}
+
+.fc .fc-scroller-harness {
+  overflow: visible !important;
+}
+
+.fc .fc-scroller {
+  overflow: visible !important;
+}
+
+.fc .fc-view-harness {
+  height: auto !important;
+  min-height: 400px;
+}
+
+.fc .fc-daygrid-day-number {
+  @apply p-3 text-sm font-semibold;
+}
+
+.fc .fc-day-today {
+  @apply bg-moto-orange/10;
+}
+
+.fc .fc-day-today .fc-daygrid-day-number {
+  @apply text-moto-orange font-bold;
+}
+
+.fc .fc-event {
+  @apply rounded-md border-0 shadow-sm cursor-pointer;
+  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  min-height: 100%;
+  height: 100% !important;
+  z-index: 10;
+}
+
+/* Event harness fills the day cell */
+.fc .fc-daygrid-event-harness {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+/* Day events container */
+.fc .fc-daygrid-day-events {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0 !important;
+}
+
+/* Multiple events - use flex to share space */
+.fc .fc-daygrid-day-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px;
+  padding-top: 24px; /* Space for day number */
+}
+
+.fc .fc-daygrid-day-events > .fc-daygrid-event-harness {
+  position: relative !important;
+  flex: 1;
+  min-height: 0;
+  width: 100% !important;
+}
+
+/* Make day cells fill row height */
+.fc .fc-daygrid-day {
+  height: 100%;
+}
+
+.fc .fc-daygrid-day-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100% !important;
+}
+
+/* Multi-day events should span correctly */
+.fc .fc-daygrid-event-harness-abs {
+  position: absolute !important;
+  width: 100% !important;
+}
+
+/* Ensure table rows have consistent height */
+.fc .fc-daygrid-body table tbody tr {
+  height: 120px !important;
+}
+
+.fc .fc-event-title {
+  @apply font-medium text-sm;
+}
+
+.fc .fc-daygrid-body {
+  @apply w-full;
+}
+
+.fc .fc-daygrid-body table {
+  @apply w-full;
+}
+
+.fc .fc-scrollgrid {
+  @apply border-0;
+}
+
+.fc .fc-scrollgrid-section > td {
+  @apply border-0;
+}
+
+.fc .fc-toolbar {
+  @apply mb-4 px-4;
+}
+
+.fc .fc-toolbar-title {
+  @apply text-xl font-bold text-foreground;
+}
+
+.fc .fc-button {
+  @apply px-4 py-2 rounded-md font-medium transition-colors bg-moto-orange border-moto-orange text-white;
+}
+
+.fc .fc-button:hover {
+  @apply bg-moto-orange-dark;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  @apply bg-moto-orange-dark shadow-inner;
+}
+
+.fc .fc-button-primary:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
+/* TimeGrid (vista semanal) - Hide time slots */
+.fc .fc-timegrid-slot {
+  height: 0 !important;
+  display: none !important;
+}
+
+.fc .fc-timegrid-slot-label {
+  display: none !important;
+}
+
+.fc .fc-timegrid-axis {
+  display: none !important;
+}
+
+.fc .fc-timegrid-body {
+  height: auto !important;
+}
+
+.fc .fc-timegrid-cols table {
+  height: 100% !important;
+}
+
+.fc .fc-timegrid-col-events {
+  position: absolute;
+  inset: 0;
+}
+
+.fc .fc-timegrid-event-harness {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.fc .fc-timegrid-event {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+.fc .fc-timegrid-col-bg,
+.fc .fc-timegrid-col-frame {
+  height: 100% !important;
+}
+
+.fc .fc-timegrid-slots {
+  display: none !important;
+}
+
+/* Celda de evento con imagen de fondo */
+.fc-event-with-image {
+  @apply relative overflow-hidden;
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+.fc-event-with-image::before {
+  content: '';
+  @apply absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent;
+}
+
+.fc-event-with-image .fc-event-content {
+  @apply relative z-10;
+}
+
+/* ============================================
+   CUSTOM COMPONENTS
+   ============================================ */
+
+/* Event Overlay (texto sobre imagen en calendario) */
+.event-overlay {
+  @apply absolute inset-0 flex flex-col justify-end p-2;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 50%, transparent 100%);
+}
+
+.event-overlay-title {
+  @apply text-white font-bold text-sm leading-tight line-clamp-2;
+}
+
+.event-overlay-meta {
+  @apply text-white/80 text-xs mt-1;
+}
+
+/* Botón Google Calendar */
+.btn-google-calendar {
+  @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all;
+  @apply bg-white text-gray-700 hover:bg-gray-100 shadow-md;
+}
+
+/* Card de evento */
+.event-card {
+  @apply relative overflow-hidden rounded-xl bg-card border shadow-sm transition-all;
+  @apply hover:shadow-lg hover:-translate-y-1;
+}
+
+.event-card-image {
+  @apply relative aspect-[16/9] overflow-hidden;
+}
+
+.event-card-image img {
+  @apply w-full h-full object-cover transition-transform duration-500;
+}
+
+.event-card:hover .event-card-image img {
+  @apply scale-105;
+}
+
+/* Loading skeletons */
+.skeleton {
+  @apply animate-pulse bg-muted rounded;
+}
+
+/* Map container */
+.map-container {
+  @apply w-full h-[400px] rounded-xl overflow-hidden;
+}
+
+/* Form styles */
+.form-label {
+  @apply block text-sm font-medium text-foreground mb-1.5;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 rounded-md border bg-background text-foreground;
+  @apply placeholder:text-muted-foreground;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.form-error {
+  @apply text-sm text-destructive mt-1;
+}
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-muted rounded-full;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted-foreground/30 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
+}
+
+/* Focus visible */
+:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
+
+/* Selection */
+::selection {
+  @apply bg-primary/30 text-foreground;
+}
