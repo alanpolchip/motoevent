@@ -3,6 +3,7 @@ import { Inter, Oswald } from 'next/font/google';
 import './globals.css';
 import { APP_NAME, SEO } from '@/lib/constants';
 import { RoleSelector } from '@/components/debug/RoleSelector';
+import { ThemeProvider } from '@/components/theme-provider';
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -98,8 +99,15 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
       </head>
       <body className="min-h-screen bg-background font-sans antialiased">
-        {children}
-        <RoleSelector />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <RoleSelector />
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -1,7 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { Edit, Plus } from 'lucide-react';
+import { Edit, Plus, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
 
 type CalendarView = '1W' | '2W' | '4W';
@@ -13,6 +15,17 @@ interface SidebarProps {
 
 export function Sidebar({ currentView = '2W', onViewChange }: SidebarProps) {
   const views: CalendarView[] = ['1W', '2W', '4W'];
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-[60px] bg-card border-r border-border flex flex-col items-center py-6 gap-6 z-50">
@@ -95,6 +108,29 @@ export function Sidebar({ currentView = '2W', onViewChange }: SidebarProps) {
           Publicar
         </span>
       </Link>
+
+      {/* Spacer pequeño */}
+      <div className="h-4" />
+
+      {/* Theme Toggle Button */}
+      {mounted && (
+        <button
+          onClick={toggleTheme}
+          className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80 transition-colors group relative"
+          title="Cambiar tema"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          ) : (
+            <Moon className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          )}
+          
+          {/* Tooltip on hover */}
+          <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            {theme === 'dark' ? 'Modo Claro' : 'Modo Oscuro'}
+          </span>
+        </button>
+      )}
     </aside>
   );
 }
