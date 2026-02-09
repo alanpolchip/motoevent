@@ -200,24 +200,24 @@ export function MonthView({ events, currentDate, onDateChange }: MonthViewProps)
               day.isToday && "ring-2 ring-moto-orange ring-inset"
             )}
           >
-            {/* Day number */}
-            <div
-              className={cn(
-                "absolute top-1 right-1 z-20 text-xs font-bold px-1.5 py-0.5 rounded",
-                day.isToday 
-                  ? "bg-moto-orange text-white" 
-                  : day.isCurrentMonth
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-              )}
-            >
-              {day.dayNumber}
-            </div>
-
             {/* Events container */}
             {day.events.length === 0 ? (
               // Empty day
-              <div className="w-full h-full" />
+              <>
+                <div
+                  className={cn(
+                    "absolute top-1 right-1 z-20 text-xs font-bold px-1.5 py-0.5 rounded",
+                    day.isToday 
+                      ? "bg-moto-orange text-white" 
+                      : day.isCurrentMonth
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                  )}
+                >
+                  {day.dayNumber}
+                </div>
+                <div className="w-full h-full" />
+              </>
             ) : day.events.length === 1 ? (
               // Single event - Full image background
               <div
@@ -231,6 +231,18 @@ export function MonthView({ events, currentDate, onDateChange }: MonthViewProps)
                   background: 'linear-gradient(135deg, #FF6B00 0%, #E55A00 100%)',
                 }}
               >
+                {/* Day number on top of image */}
+                <div
+                  className={cn(
+                    "absolute top-1 right-1 z-30 text-xs font-bold px-1.5 py-0.5 rounded shadow-lg",
+                    day.isToday 
+                      ? "bg-moto-orange text-white" 
+                      : "bg-white/90 text-gray-700"
+                  )}
+                >
+                  {day.dayNumber}
+                </div>
+
                 {/* Gradient overlay */}
                 <div 
                   className="absolute inset-0"
@@ -256,6 +268,18 @@ export function MonthView({ events, currentDate, onDateChange }: MonthViewProps)
             ) : (
               // Multiple events - Split columns (max 3 shown)
               <div className="w-full h-full flex relative">
+                {/* Day number on top of multiple events */}
+                <div
+                  className={cn(
+                    "absolute top-1 right-1 z-30 text-xs font-bold px-1.5 py-0.5 rounded shadow-lg",
+                    day.isToday 
+                      ? "bg-moto-orange text-white" 
+                      : "bg-white/90 text-gray-700"
+                  )}
+                >
+                  {day.dayNumber}
+                </div>
+
                 {day.events.slice(0, 3).map((event) => (
                   <div
                     key={event.id}

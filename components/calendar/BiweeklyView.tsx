@@ -170,22 +170,23 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
               day.isToday && "ring-2 ring-moto-orange ring-inset"
             )}
           >
-            {/* Day number */}
-            <div
-              className={cn(
-                "absolute top-2 right-2 z-20 text-sm font-bold px-2 py-1 rounded",
-                day.isToday 
-                  ? "bg-moto-orange text-white" 
-                  : "text-muted-foreground"
-              )}
-            >
-              {day.dayNumber}
-            </div>
-
             {/* Events container */}
             {day.events.length === 0 ? (
               // Empty day
-              <div className="w-full h-full" />
+              <>
+                {/* Day number for empty days */}
+                <div
+                  className={cn(
+                    "absolute top-2 right-2 z-20 text-sm font-bold px-2 py-1 rounded",
+                    day.isToday 
+                      ? "bg-moto-orange text-white" 
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {day.dayNumber}
+                </div>
+                <div className="w-full h-full" />
+              </>
             ) : day.events.length === 1 ? (
               // Single event - Full image background
               <div
@@ -199,6 +200,18 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
                   background: 'linear-gradient(135deg, #FF6B00 0%, #E55A00 100%)',
                 }}
               >
+                {/* Day number on top of image */}
+                <div
+                  className={cn(
+                    "absolute top-2 right-2 z-30 text-sm font-bold px-2 py-1 rounded shadow-lg",
+                    day.isToday 
+                      ? "bg-moto-orange text-white" 
+                      : "bg-white/90 text-gray-700"
+                  )}
+                >
+                  {day.dayNumber}
+                </div>
+
                 {/* Gradient overlay */}
                 <div 
                   className="absolute inset-0"
@@ -223,7 +236,19 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
               </div>
             ) : (
               // Multiple events - Split columns (N eventos = 100% / N)
-              <div className="w-full h-full flex">
+              <div className="w-full h-full flex relative">
+                {/* Day number on top of multiple events */}
+                <div
+                  className={cn(
+                    "absolute top-2 right-2 z-30 text-sm font-bold px-2 py-1 rounded shadow-lg",
+                    day.isToday 
+                      ? "bg-moto-orange text-white" 
+                      : "bg-white/90 text-gray-700"
+                  )}
+                >
+                  {day.dayNumber}
+                </div>
+
                 {day.events.map((event) => (
                   <div
                     key={event.id}
