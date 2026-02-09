@@ -1,166 +1,149 @@
 # 🏍️ MotoEvents Calendar
 
-El calendario de eventos moteros de referencia. Una PWA construida con Next.js 14, TypeScript, Tailwind CSS y Supabase.
+Calendario de eventos moteros construido con Next.js 14, TypeScript, Tailwind CSS y Supabase.
 
-## 🚀 Stack Tecnológico
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Next.js](https://img.shields.io/badge/Next.js-14-black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)
 
-- **Framework:** [Next.js 14](https://nextjs.org/) (App Router)
-- **Lenguaje:** [TypeScript](https://www.typescriptlang.org/)
-- **Estilos:** [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components:** [shadcn/ui](https://ui.shadcn.com/)
-- **Backend/DB:** [Supabase](https://supabase.com/)
-- **Calendario:** [FullCalendar](https://fullcalendar.io/)
-- **PWA:** [next-pwa](https://github.com/shadowwalker/next-pwa)
+## 🚀 Features
 
-## 📋 Requisitos Previos
+- ✅ **Multi-View Calendar** - 3 vistas: Semana / 2 Semanas / Mes
+- ✅ **Event Cards** - Tarjetas visuales con imágenes full-background
+- ✅ **Multi-Day Events** - Eventos que abarcan múltiples días
+- ✅ **Responsive Sidebar** - Navegación lateral minimalista (60px)
+- ✅ **Supabase Backend** - Autenticación + Base de datos
+- ✅ **PWA Ready** - Progressive Web App habilitada
 
-- Node.js 18+ 
+## 📸 Screenshots
+
+_(Pendiente - agregar capturas de pantalla)_
+
+## 🛠️ Stack Tecnológico
+
+- **Framework**: [Next.js 14](https://nextjs.org/) (App Router)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- **Backend**: [Supabase](https://supabase.com/)
+- **State**: React hooks (useState, useMemo)
+- **Icons**: [Lucide React](https://lucide.dev/)
+
+## 📋 Requisitos
+
+- Node.js 18+
 - npm o yarn
-- Cuenta en [Supabase](https://supabase.com/)
+- Cuenta en Supabase
 
-## 🛠️ Instalación
+## 🔧 Instalación
 
-1. **Clonar el repositorio**
-   ```bash
-   git clone https://github.com/tu-usuario/motoevents-calendar.git
-   cd motoevents-calendar
-   ```
+```bash
+# Clonar repositorio
+git clone https://github.com/alanpolchip/motoevent.git
+cd motoevent
 
-2. **Instalar dependencias**
-   ```bash
-   npm install
-   ```
+# Instalar dependencias
+npm install
 
-3. **Configurar variables de entorno**
-   ```bash
-   cp .env.local.example .env.local
-   # Editar .env.local con tus credenciales de Supabase
-   ```
+# Configurar variables de entorno
+cp .env.local.example .env.local
+# Editar .env.local con tus credenciales de Supabase
 
-4. **Configurar base de datos**
-   - Crear proyecto en Supabase
-   - Ejecutar las migraciones en `scripts/migrations.sql`
-   - Configurar Storage bucket para imágenes
+# Iniciar servidor de desarrollo
+npm run dev
+```
 
-5. **Iniciar servidor de desarrollo**
-   ```bash
-   npm run dev
-   ```
+Abrir [http://localhost:3000](http://localhost:3000)
 
-6. **Abrir en navegador**
-   ```
-   http://localhost:3000
-   ```
+## 🗄️ Base de Datos
+
+### Configurar Supabase
+
+1. Crear proyecto en [Supabase](https://supabase.com)
+2. Ejecutar migraciones: `scripts/migrations.sql`
+3. Configurar Storage bucket para imágenes
+4. Copiar credenciales a `.env.local`
+
+### Tablas principales
+
+- `events` - Eventos moteros
+- `profiles` - Usuarios + roles
+- `event_favorites` - Favoritos de usuarios
 
 ## 📁 Estructura del Proyecto
 
 ```
 my-app/
 ├── app/                    # Next.js App Router
-│   ├── (landing)/          # Grupo de rutas
-│   ├── eventos/[slug]/     # Páginas de eventos (SEO)
-│   ├── api/                # API Routes
-│   ├── admin/              # Panel de administración
-│   └── submit-evento/      # Formulario UGC
-├── components/             # Componentes React
-│   ├── ui/                 # Componentes base (shadcn)
-│   ├── calendar/           # Componentes del calendario
-│   ├── event/              # Componentes de eventos
-│   └── seo/                # Componentes SEO
-├── lib/                    # Utilidades y configuración
-│   ├── supabase/           # Clientes Supabase
-│   └── utils/              # Helpers
-├── types/                  # TypeScript definitions
-├── public/                 # Assets estáticos
-└── scripts/                # Scripts y migraciones
+│   ├── page.tsx           # Página principal (calendario)
+│   ├── moderar/           # Panel de moderación
+│   └── api/eventos/       # API Routes
+├── components/
+│   ├── sidebar/           # Barra lateral
+│   └── calendar/          # Vistas del calendario
+│       ├── BiweeklyView.tsx   # Vista 2 semanas
+│       ├── WeekView.tsx       # Vista 1 semana
+│       └── MonthView.tsx      # Vista mes
+├── lib/
+│   ├── supabase/          # Clientes Supabase
+│   └── utils/             # Utilidades
+└── types/                 # TypeScript definitions
 ```
 
-## 🗄️ Base de Datos
+## 🎨 Vistas del Calendario
 
-### Tablas Principales
+### Vista Semana (1W)
+- 7 columnas (Lun-Dom)
+- Celdas gigantes de altura completa
+- Ideal para ver detalles de eventos
 
-- **profiles**: Extensión de auth.users con roles
-- **events**: Eventos moteros con toda la información
-- **event_favorites**: Favoritos de usuarios
-- **event_views**: Analytics de visualizaciones
+### Vista 2 Semanas (2W) - Por defecto
+- 2 filas x 7 columnas
+- Balance entre detalle y vista general
 
-### Estados de Eventos
+### Vista Mes (4W)
+- 5 filas x 7 columnas
+- Vista aérea del mes completo
 
-- `pending`: Pendiente de moderación
-- `approved`: Aprobado y visible
-- `rejected`: Rechazado
-- `cancelled`: Cancelado
-
-## 🔐 Autenticación y Roles
-
-- **user**: Puede ver eventos y enviar propuestas
-- **moderator**: Puede aprobar/rechazar eventos
-- **admin**: Control total del sistema
-
-## 🚀 Despliegue
-
-### Vercel (Recomendado)
+## 🚀 Scripts
 
 ```bash
-npm i -g vercel
-vercel
+npm run dev      # Desarrollo
+npm run build    # Build producción
+npm run start    # Servidor producción
+npm run lint     # Linting
 ```
 
-### Variables de Entorno en Producción
+## 🔐 Variables de Entorno
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-NEXT_PUBLIC_APP_URL=
-NEXT_PUBLIC_MAPBOX_TOKEN=
+NEXT_PUBLIC_SUPABASE_URL=tu-url-supabase
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-## 📱 PWA
+## 📝 Changelog
 
-La aplicación incluye:
-- Manifest.json configurado
-- Service Worker con next-pwa
-- Iconos para todas las plataformas
-- Soporte offline básico
-
-## 🔍 SEO
-
-- Server-Side Rendering (SSR)
-- Metadata dinámica por página
-- Open Graph images dinámicas
-- JSON-LD structured data
-- Sitemap.xml automático
-- URLs amigables con slugs
-
-## 📝 Scripts Útiles
-
-```bash
-# Desarrollo
-npm run dev
-
-# Build de producción
-npm run build
-
-# Linting
-npm run lint
-
-# Generar sitemap
-npm run postbuild
-```
+### v1.0.0 (2026-02-09)
+- ✅ Sidebar lateral con selector de vistas
+- ✅ Multi-view calendar (1W/2W/4W)
+- ✅ Event cards con imágenes full-background
+- ✅ Eventos multi-día con repetición visual
+- ✅ Rectángulo naranja para día actual
+- ✅ Múltiples eventos dividen espacio equitativamente
 
 ## 🤝 Contribuir
 
-1. Fork del repositorio
-2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit de cambios (`git commit -am 'Añadir nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+1. Fork del proyecto
+2. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
+3. Commit: `git commit -m 'feat: agregar nueva funcionalidad'`
+4. Push: `git push origin feature/nueva-funcionalidad`
 5. Crear Pull Request
 
 ## 📄 Licencia
 
-MIT License - ver [LICENSE](LICENSE) para más detalles.
+MIT License - ver [LICENSE](LICENSE)
 
 ---
 
-Desarrollado con ❤️ para la comunidad motera.
+Desarrollado con ❤️ por Alan + Snowy 🏍️
