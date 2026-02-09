@@ -212,27 +212,30 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
                   {day.dayNumber}
                 </div>
 
-                {/* Gradient overlay */}
+                {/* Gradient overlay mejorado */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 transition-opacity duration-300"
                   style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)'
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.3) 70%, transparent 100%)'
                   }}
                 />
                 
-                {/* Event info */}
+                {/* Event info con mejor jerarquía visual */}
                 <div className="absolute inset-0 flex flex-col justify-end p-3 text-white">
-                  <h4 className="font-bold text-sm line-clamp-2 drop-shadow-lg mb-1">
+                  <h4 className="font-bold text-sm line-clamp-2 leading-tight mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                     {day.events[0].title}
                   </h4>
-                  <div className="flex items-center gap-1 text-xs opacity-90">
-                    <MapPin className="w-3 h-3 flex-shrink-0" />
-                    <span className="line-clamp-1">{day.events[0].location_city}</span>
+                  <div className="flex items-center gap-1.5 text-xs">
+                    <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">
+                      <MapPin className="w-3 h-3 flex-shrink-0" />
+                      <span className="line-clamp-1 font-medium">{day.events[0].location_city}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Hover effect */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                {/* Hover effect mejorado con escala */}
+                <div className="absolute inset-0 bg-moto-orange/0 group-hover:bg-moto-orange/10 transition-all duration-300" />
+                <div className="absolute inset-0 ring-0 group-hover:ring-2 group-hover:ring-moto-orange/50 ring-inset transition-all duration-300 rounded-sm" />
               </div>
             ) : (
               // Multiple events - Split columns (N eventos = 100% / N)
@@ -262,23 +265,23 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
                       background: 'linear-gradient(135deg, #FF6B00 0%, #E55A00 100%)',
                     }}
                   >
-                    {/* Gradient overlay */}
+                    {/* Gradient overlay mejorado */}
                     <div 
-                      className="absolute inset-0"
+                      className="absolute inset-0 transition-opacity duration-300"
                       style={{
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)'
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.3) 80%, transparent 100%)'
                       }}
                     />
                     
-                    {/* Event title only */}
+                    {/* Event title con mejor contraste */}
                     <div className="absolute inset-0 flex items-end p-2">
-                      <h4 className="font-bold text-xs text-white line-clamp-3 drop-shadow-lg">
+                      <h4 className="font-bold text-xs text-white line-clamp-3 leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {event.title}
                       </h4>
                     </div>
 
-                    {/* Hover effect */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    {/* Hover effect mejorado */}
+                    <div className="absolute inset-0 bg-moto-orange/0 group-hover:bg-moto-orange/20 transition-all duration-300" />
                   </div>
                 ))}
               </div>

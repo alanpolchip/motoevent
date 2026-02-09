@@ -243,27 +243,30 @@ export function MonthView({ events, currentDate, onDateChange }: MonthViewProps)
                   {day.dayNumber}
                 </div>
 
-                {/* Gradient overlay */}
+                {/* Gradient overlay mejorado */}
                 <div 
-                  className="absolute inset-0"
+                  className="absolute inset-0 transition-opacity duration-300"
                   style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)'
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.3) 70%, transparent 100%)'
                   }}
                 />
                 
-                {/* Event info */}
+                {/* Event info mejorada */}
                 <div className="absolute inset-0 flex flex-col justify-end p-2 text-white">
-                  <h4 className="font-bold text-xs line-clamp-2 drop-shadow-lg mb-0.5">
+                  <h4 className="font-bold text-xs line-clamp-2 leading-tight mb-1 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                     {day.events[0].title}
                   </h4>
-                  <div className="flex items-center gap-0.5 text-[10px] opacity-90">
-                    <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
-                    <span className="line-clamp-1">{day.events[0].location_city}</span>
+                  <div className="flex items-center gap-0.5 text-[10px]">
+                    <div className="flex items-center gap-0.5 bg-black/30 backdrop-blur-sm px-1.5 py-0.5 rounded-full">
+                      <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+                      <span className="line-clamp-1 font-medium">{day.events[0].location_city}</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Hover effect */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                {/* Hover effect mejorado */}
+                <div className="absolute inset-0 bg-moto-orange/0 group-hover:bg-moto-orange/10 transition-all duration-300" />
+                <div className="absolute inset-0 ring-0 group-hover:ring-2 group-hover:ring-moto-orange/50 ring-inset transition-all duration-300" />
               </div>
             ) : (
               // Multiple events - Split columns (max 3 shown)
@@ -293,23 +296,23 @@ export function MonthView({ events, currentDate, onDateChange }: MonthViewProps)
                       background: 'linear-gradient(135deg, #FF6B00 0%, #E55A00 100%)',
                     }}
                   >
-                    {/* Gradient overlay */}
+                    {/* Gradient overlay mejorado */}
                     <div 
-                      className="absolute inset-0"
+                      className="absolute inset-0 transition-opacity duration-300"
                       style={{
-                        background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.5) 60%, transparent 100%)'
+                        background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.3) 80%, transparent 100%)'
                       }}
                     />
                     
-                    {/* Event title only (vertical text for narrow columns) */}
+                    {/* Event title con mejor contraste */}
                     <div className="absolute inset-0 flex items-end p-1">
-                      <h4 className="font-bold text-[10px] text-white line-clamp-4 drop-shadow-lg">
+                      <h4 className="font-bold text-[10px] text-white line-clamp-4 leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                         {event.title}
                       </h4>
                     </div>
 
-                    {/* Hover effect */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    {/* Hover effect mejorado */}
+                    <div className="absolute inset-0 bg-moto-orange/0 group-hover:bg-moto-orange/20 transition-all duration-300" />
                   </div>
                 ))}
                 {/* Show "+X more" indicator if more than 3 events */}
