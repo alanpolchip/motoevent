@@ -11,7 +11,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, loading } = useAuth();
   const supabase = createClient();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -34,12 +34,13 @@ export default function ProfilePage() {
     }
   }, [profile]);
 
-  // Load pending permission requests (solo si la tabla existe)
-  useEffect(() => {
-    if (user) {
-      loadPendingRequests();
-    }
-  }, [user]);
+  // Load pending permission requests (solo cuando el usuario lo pide)
+  // No cargar automáticamente para no ralentizar la página
+  // useEffect(() => {
+  //   if (user && !loading) {
+  //     loadPendingRequests();
+  //   }
+  // }, [user, loading]);
 
   // Check if permission_requests table exists
   const [tableExists, setTableExists] = useState(true);
@@ -67,12 +68,13 @@ export default function ProfilePage() {
     }
   };
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated (pero esperar a que termine de cargar)
   useEffect(() => {
-    if (!user) {
+    // Solo redirigir si terminó de cargar Y no hay usuario
+    if (!loading && !user) {
       router.push('/');
     }
-  }, [user, router]);
+  }, [loading, user, router]);
 
   const handleSave = async () => {
     if (!user) return;
@@ -152,10 +154,14 @@ export default function ProfilePage() {
     }
   };
 
-  if (!user || !profile) {
+  // Mostrar loading mientras carga
+  if (loading || !user || !profile) {
     return (
       <div className="min-h-screen bg-muted/30 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-moto-orange" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-moto-orange mx-auto mb-2" />
+          <p className="text-sm text-muted-foreground">Cargando perfil...</p>
+        </div>
       </div>
     );
   }
