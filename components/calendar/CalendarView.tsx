@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { WeekView } from './WeekView';
 import { BiweeklyView } from './BiweeklyView';
 import { MonthView } from './MonthView';
+import { cn } from '@/lib/utils/cn';
 
 interface CalendarEvent {
   id: string;
@@ -25,6 +26,16 @@ export function CalendarView({ view }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Smooth transition on date change
+  const handleDateChange = (newDate: Date) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentDate(newDate);
+      setTimeout(() => setIsTransitioning(false), 50);
+    }, 150);
+  };
 
   // Fetch events
   useEffect(() => {
@@ -55,17 +66,17 @@ export function CalendarView({ view }: CalendarViewProps) {
   const commonProps = {
     events,
     currentDate,
-    onDateChange: setCurrentDate,
+    onDateChange: handleDateChange,
   };
 
-  switch (view) {
-    case '1W':
-      return <WeekView {...commonProps} />;
-    case '2W':
-      return <BiweeklyView {...commonProps} />;
-    case '4W':
-      return <MonthView {...commonProps} />;
-    default:
-      return <BiweeklyView {...commonProps} />;
-  }
+  return (
+    <div className={cn(
+      "transition-opacity duration-200",
+      isTransitioning ? "opacity-40" : "opacity-100"
+    )}>
+      {view === '1W' && <WeekView {...commonProps} />}
+      {view === '2W' && <BiweeklyView {...commonProps} />}
+      {view === '4W' && <MonthView {...commonProps} />}
+    </div>
+  );
 }

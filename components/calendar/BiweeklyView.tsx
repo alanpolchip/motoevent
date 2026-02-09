@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
@@ -31,6 +31,27 @@ interface DayCell {
 
 export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyViewProps) {
   const router = useRouter();
+
+  // Scroll navigation
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > 50) { // Threshold para evitar scroll accidental
+        e.preventDefault();
+        const newDate = new Date(currentDate);
+        if (e.deltaY > 0) {
+          // Scroll down = siguiente periodo
+          newDate.setDate(newDate.getDate() + 14);
+        } else {
+          // Scroll up = periodo anterior
+          newDate.setDate(newDate.getDate() - 14);
+        }
+        onDateChange(newDate);
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [currentDate, onDateChange]);
 
   // Generate 2 weeks (14 days) starting from Monday of current week
   const calendarDays = useMemo(() => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
@@ -31,6 +31,25 @@ interface DayCell {
 
 export function WeekView({ events, currentDate, onDateChange }: WeekViewProps) {
   const router = useRouter();
+
+  // Scroll navigation
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) > 50) {
+        e.preventDefault();
+        const newDate = new Date(currentDate);
+        if (e.deltaY > 0) {
+          newDate.setDate(newDate.getDate() + 7);
+        } else {
+          newDate.setDate(newDate.getDate() - 7);
+        }
+        onDateChange(newDate);
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    return () => window.removeEventListener('wheel', handleWheel);
+  }, [currentDate, onDateChange]);
 
   // Generate 1 week (7 days) starting from Monday
   const calendarDays = useMemo(() => {
