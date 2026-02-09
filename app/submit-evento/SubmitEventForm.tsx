@@ -112,7 +112,7 @@ export function SubmitEventForm() {
       {/* Descripción */}
       <div className="space-y-2">
         <label htmlFor="description" className="text-sm font-medium">
-          Descripción completa <span className="text-red-500">*</span>
+          Descripción completa <span className="text-xs text-muted-foreground">(opcional)</span>
         </label>
         <textarea
           id="description"
@@ -120,21 +120,19 @@ export function SubmitEventForm() {
           rows={4}
           placeholder="Describe tu evento con detalle..."
           className="w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-moto-orange/20 focus:border-moto-orange resize-none"
-          required
         />
       </div>
 
       {/* Descripción corta */}
       <div className="space-y-2">
         <label htmlFor="short_description" className="text-sm font-medium">
-          Descripción corta <span className="text-xs text-muted-foreground">(máx. 150 caracteres)</span>
+          Descripción corta <span className="text-xs text-muted-foreground">(opcional)</span>
         </label>
         <input
           type="text"
           id="short_description"
           name="short_description"
           placeholder="Breve resumen para el calendario"
-          maxLength={150}
           className="w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-moto-orange/20 focus:border-moto-orange"
         />
       </div>
@@ -235,7 +233,7 @@ export function SubmitEventForm() {
       {/* Imagen */}
       <div className="space-y-2">
         <label htmlFor="featured_image" className="text-sm font-medium">
-          URL de imagen principal <span className="text-red-500">*</span>
+          URL de imagen principal <span className="text-xs text-muted-foreground">(opcional)</span>
         </label>
         <input
           type="url"
@@ -243,7 +241,6 @@ export function SubmitEventForm() {
           name="featured_image"
           placeholder="https://ejemplo.com/imagen.jpg"
           className="w-full px-3 py-2 border rounded-md bg-background text-sm focus:outline-none focus:ring-2 focus:ring-moto-orange/20 focus:border-moto-orange"
-          required
         />
         <p className="text-xs text-muted-foreground">
           Proporciona una URL de imagen representativa de tu evento

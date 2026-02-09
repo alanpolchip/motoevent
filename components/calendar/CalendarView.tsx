@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { WeekView } from './WeekView';
 import { BiweeklyView } from './BiweeklyView';
 import { MonthView } from './MonthView';
 import { cn } from '@/lib/utils/cn';
+import type { ActiveFilters } from '@/components/sidebar/FilterSection';
 
 interface CalendarEvent {
   id: string;
@@ -12,6 +13,7 @@ interface CalendarEvent {
   start_date: string;
   end_date?: string;
   location_city: string;
+  event_type: string;
   featured_image?: string;
   slug: string;
 }
@@ -20,9 +22,10 @@ type ViewType = '1W' | '2W' | '4W';
 
 interface CalendarViewProps {
   view: ViewType;
+  filters?: ActiveFilters;
 }
 
-export function CalendarView({ view }: CalendarViewProps) {
+export function CalendarView({ view, filters }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -54,6 +57,25 @@ export function CalendarView({ view }: CalendarViewProps) {
     fetchEvents();
   }, []);
 
+  // Apply filters to events
+  const filteredEvents = useMemo(() => {
+    if (!filters) return events;
+
+    return events.filter((event) => {
+      // Filter by city
+      if (filters.cities.length > 0 && !filters.cities.includes(event.location_city)) {
+        return false;
+      }
+
+      // Filter by event type
+      if (filters.eventTypes.length > 0 && !filters.eventTypes.includes(event.event_type)) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [events, filters]);
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -64,7 +86,7 @@ export function CalendarView({ view }: CalendarViewProps) {
 
   // Render view based on selection
   const commonProps = {
-    events,
+    events: filteredEvents,
     currentDate,
     onDateChange: handleDateChange,
   };

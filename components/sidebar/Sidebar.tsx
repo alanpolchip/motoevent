@@ -5,15 +5,17 @@ import { Edit, Plus, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
+import { FilterSection, type ActiveFilters } from './FilterSection';
 
 type CalendarView = '1W' | '2W' | '4W';
 
 interface SidebarProps {
   currentView?: CalendarView;
   onViewChange?: (view: CalendarView) => void;
+  onFiltersChange?: (filters: ActiveFilters) => void;
 }
 
-export function Sidebar({ currentView = '2W', onViewChange }: SidebarProps) {
+export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: SidebarProps) {
   const views: CalendarView[] = ['1W', '2W', '4W'];
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -80,6 +82,12 @@ export function Sidebar({ currentView = '2W', onViewChange }: SidebarProps) {
 
       {/* Spacer */}
       <div className="flex-1" />
+
+      {/* Filter Section */}
+      <FilterSection onFiltersChange={onFiltersChange} />
+
+      {/* Spacer pequeño */}
+      <div className="h-4" />
 
       {/* Moderar Button */}
       <Link

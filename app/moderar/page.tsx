@@ -142,38 +142,50 @@ export default function ModerarPage() {
 
         {/* Resumen de estados */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card border rounded-lg p-4">
+          <button
+            onClick={() => document.getElementById('section-pending')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="bg-card border rounded-lg p-4 text-left hover:bg-muted/50 transition-colors cursor-pointer"
+          >
             <div className="flex items-center gap-2 text-yellow-600 mb-2">
               <Clock className="w-5 h-5" />
               <span className="font-medium">Por Revisar</span>
             </div>
             <p className="text-2xl font-bold">{pendingEvents.length}</p>
-          </div>
-          <div className="bg-card border rounded-lg p-4">
+          </button>
+          <button
+            onClick={() => document.getElementById('section-needs-edit')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="bg-card border rounded-lg p-4 text-left hover:bg-muted/50 transition-colors cursor-pointer"
+          >
             <div className="flex items-center gap-2 text-blue-600 mb-2">
               <Edit3 className="w-5 h-5" />
               <span className="font-medium">Por Modificar</span>
             </div>
             <p className="text-2xl font-bold">{needsEditEvents.length}</p>
-          </div>
-          <div className="bg-card border rounded-lg p-4">
+          </button>
+          <button
+            onClick={() => document.getElementById('section-approved')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="bg-card border rounded-lg p-4 text-left hover:bg-muted/50 transition-colors cursor-pointer"
+          >
             <div className="flex items-center gap-2 text-green-600 mb-2">
               <CheckCircle className="w-5 h-5" />
               <span className="font-medium">Validados</span>
             </div>
             <p className="text-2xl font-bold">{approvedEvents.length}</p>
-          </div>
-          <div className="bg-card border rounded-lg p-4">
+          </button>
+          <button
+            onClick={() => document.getElementById('section-rejected')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+            className="bg-card border rounded-lg p-4 text-left hover:bg-muted/50 transition-colors cursor-pointer"
+          >
             <div className="flex items-center gap-2 text-red-600 mb-2">
               <XCircle className="w-5 h-5" />
               <span className="font-medium">Descartados</span>
             </div>
             <p className="text-2xl font-bold">{rejectedEvents.length}</p>
-          </div>
+          </button>
         </div>
 
         {/* Sección: Por Revisar */}
-        <section className="mb-8">
+        <section id="section-pending" className="mb-8 scroll-mt-20">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Clock className="w-5 h-5 text-yellow-600" />
             Por Revisar
@@ -213,7 +225,7 @@ export default function ModerarPage() {
         </section>
 
         {/* Sección: Por Modificar */}
-        <section className="mb-8">
+        <section id="section-needs-edit" className="mb-8 scroll-mt-20">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Edit3 className="w-5 h-5 text-blue-600" />
             Por Modificar
@@ -252,7 +264,7 @@ export default function ModerarPage() {
         </section>
 
         {/* Sección: Validados */}
-        <section className="mb-8">
+        <section id="section-approved" className="mb-8 scroll-mt-20">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <CheckCircle className="w-5 h-5 text-green-600" />
             Validados
@@ -291,7 +303,7 @@ export default function ModerarPage() {
         </section>
 
         {/* Sección: Descartados */}
-        <section className="mb-8">
+        <section id="section-rejected" className="mb-8 scroll-mt-20">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <XCircle className="w-5 h-5 text-red-600" />
             Descartados
