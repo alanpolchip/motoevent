@@ -4,12 +4,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, User, Shield, Edit2, Save, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Shield, Edit2, Save, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_PERMISSIONS } from '@/types/auth';
 import { createClient } from '@/lib/supabase/client';
 
-export default function ProfilePage() {
+/**
+ * Versión simplificada del perfil que no requiere permission_requests
+ * Úsala si la tabla aún no está creada
+ */
+export function ProfileSimple() {
   const router = useRouter();
   const { user, profile, refreshProfile } = useAuth();
   const supabase = createClient();
@@ -22,10 +26,6 @@ export default function ProfilePage() {
   const [fullName, setFullName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
 
-  // Permission requests state
-  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
-  const [requestingPermission, setRequestingPermission] = useState(false);
-
   // Load profile data
   useEffect(() => {
     if (profile) {
@@ -33,39 +33,6 @@ export default function ProfilePage() {
       setAvatarUrl(profile.avatar_url || '');
     }
   }, [profile]);
-
-  // Load pending permission requests (solo si la tabla existe)
-  useEffect(() => {
-    if (user) {
-      loadPendingRequests();
-    }
-  }, [user]);
-
-  // Check if permission_requests table exists
-  const [tableExists, setTableExists] = useState(true);
-
-  const loadPendingRequests = async () => {
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from('permission_requests')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setPendingRequests(data);
-        setTableExists(true);
-      } else if (error) {
-        setTableExists(false);
-      }
-    } catch (error) {
-      console.log('Error loading permission requests (table may not exist yet):', error);
-      setTableExists(false);
-    }
-  };
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -98,57 +65,6 @@ export default function ProfilePage() {
       setMessage({ type: 'error', text: error.message || 'Error al actualizar perfil' });
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleRequestPermission = async (type: 'contributor' | 'moderator') => {
-    if (!user) return;
-
-    // Check if already has permission
-    if (type === 'contributor' && profile?.can_submit_events) {
-      setMessage({ type: 'error', text: 'Ya tienes permisos de colaborador' });
-      return;
-    }
-    if (type === 'moderator' && profile?.can_moderate_events) {
-      setMessage({ type: 'error', text: 'Ya tienes permisos de moderador' });
-      return;
-    }
-
-    // Check if already has pending request
-    const hasPending = pendingRequests.some(r => r.request_type === type);
-    if (hasPending) {
-      setMessage({ type: 'error', text: 'Ya tienes una solicitud pendiente de este tipo' });
-      return;
-    }
-
-    const reason = prompt(`¿Por qué quieres ser ${type === 'contributor' ? 'colaborador' : 'moderador'}?`);
-    if (!reason) return;
-
-    setRequestingPermission(true);
-
-    try {
-      const { error } = await supabase
-        .from('permission_requests')
-        .insert({
-          user_id: user.id,
-          request_type: type,
-          reason,
-        });
-
-      if (error) {
-        // Si la tabla no existe, mostrar mensaje informativo
-        if (error.message?.includes('permission_requests')) {
-          throw new Error('El sistema de solicitudes aún no está configurado. Contacta al administrador.');
-        }
-        throw error;
-      }
-
-      setMessage({ type: 'success', text: 'Solicitud enviada correctamente' });
-      await loadPendingRequests();
-    } catch (error: any) {
-      setMessage({ type: 'error', text: error.message || 'Error al enviar solicitud' });
-    } finally {
-      setRequestingPermission(false);
     }
   };
 
@@ -208,7 +124,7 @@ export default function ProfilePage() {
             <div>
               <h2 className="text-2xl font-bold tracking-tight">Mi Perfil</h2>
               <p className="text-muted-foreground mt-1">
-                Gestiona tu información personal y permisos
+                Gestiona tu información personal
               </p>
             </div>
             {!isEditing ? (
@@ -318,7 +234,7 @@ export default function ProfilePage() {
         <div className="bg-card rounded-xl border shadow-sm p-6 mb-6">
           <h3 className="text-lg font-semibold mb-4">Permisos de la Cuenta</h3>
           
-          <div className="space-y-3 mb-6">
+          <div className="space-y-3">
             {permissions.map((permission, index) => (
               <div key={index} className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-green-500" />
@@ -327,71 +243,12 @@ export default function ProfilePage() {
             ))}
           </div>
 
-          {/* Request Permissions - Solo si la tabla existe */}
-          {tableExists && !profile.can_submit_events && (
-            <div className="border-t pt-4 mb-4">
-              <h4 className="font-medium mb-2">Solicitar Permisos de Colaborador</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Los colaboradores pueden enviar eventos para moderación.
+          {/* Info sobre solicitar permisos */}
+          {!profile.can_submit_events && (
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                💡 Para solicitar permisos adicionales, contacta con un administrador.
               </p>
-              <button
-                onClick={() => handleRequestPermission('contributor')}
-                disabled={requestingPermission}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-moto-orange hover:bg-moto-orange-dark text-white transition-colors disabled:opacity-50"
-              >
-                {requestingPermission ? 'Enviando...' : 'Solicitar Permisos'}
-              </button>
-            </div>
-          )}
-
-          {tableExists && profile.can_submit_events && !profile.can_moderate_events && (
-            <div className="border-t pt-4">
-              <h4 className="font-medium mb-2">Solicitar Permisos de Moderador</h4>
-              <p className="text-sm text-muted-foreground mb-3">
-                Los moderadores pueden aprobar o rechazar eventos enviados.
-              </p>
-              <button
-                onClick={() => handleRequestPermission('moderator')}
-                disabled={requestingPermission}
-                className="px-4 py-2 text-sm font-medium rounded-lg bg-moto-orange hover:bg-moto-orange-dark text-white transition-colors disabled:opacity-50"
-              >
-                {requestingPermission ? 'Enviando...' : 'Solicitar Permisos'}
-              </button>
-            </div>
-          )}
-
-          {/* Info si la tabla no existe */}
-          {!tableExists && !profile.can_submit_events && (
-            <div className="border-t pt-4 mt-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  💡 Para solicitar permisos adicionales, contacta con un administrador o ejecuta la migración <code className="text-xs bg-background px-1 py-0.5 rounded">create-permission-requests.sql</code>
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Pending Requests */}
-          {tableExists && pendingRequests.length > 0 && (
-            <div className="border-t pt-4 mt-4">
-              <h4 className="font-medium mb-3">Solicitudes Pendientes</h4>
-              <div className="space-y-2">
-                {pendingRequests.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-sm">
-                        {request.request_type === 'contributor' ? 'Colaborador' : 'Moderador'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Enviada el {new Date(request.created_at).toLocaleDateString('es-ES')}
-                      </p>
-                    </div>
-                    <span className="px-2 py-1 text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-200 rounded">
-                      Pendiente
-                    </span>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
         </div>
