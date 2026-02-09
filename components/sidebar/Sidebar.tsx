@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
 import { FilterSection, type ActiveFilters } from './FilterSection';
 import { UserButton } from '@/components/auth/UserButton';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 type CalendarView = '1W' | '2W' | '4W';
 
@@ -19,6 +20,7 @@ interface SidebarProps {
 export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: SidebarProps) {
   const views: CalendarView[] = ['1W', '2W', '4W'];
   const { theme, setTheme } = useTheme();
+  const { canSubmitEvents, canModerateEvents, isAdmin } = useAuth();
   const [mounted, setMounted] = useState(false);
 
   // Avoid hydration mismatch
@@ -96,33 +98,37 @@ export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: S
       {/* Spacer pequeño */}
       <div className="h-4" />
 
-      {/* Moderar Button */}
-      <Link
-        href="/moderar"
-        className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80 transition-colors group relative"
-        title="Moderar Eventos"
-      >
-        <Edit className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
-        
-        {/* Tooltip on hover */}
-        <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          Moderar
-        </span>
-      </Link>
+      {/* Moderar Button - Solo si tiene permisos */}
+      {canModerateEvents && (
+        <Link
+          href="/moderar"
+          className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80 transition-colors group relative"
+          title="Moderar Eventos"
+        >
+          <Edit className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
+          
+          {/* Tooltip on hover */}
+          <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Moderar
+          </span>
+        </Link>
+      )}
 
-      {/* Publicar Button */}
-      <Link
-        href="/submit-evento"
-        className="flex items-center justify-center w-10 h-10 rounded-lg bg-moto-orange hover:bg-moto-orange-dark transition-colors group relative"
-        title="Publicar Evento"
-      >
-        <Plus className="w-5 h-5 text-white" />
-        
-        {/* Tooltip on hover */}
-        <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          Publicar
-        </span>
-      </Link>
+      {/* Publicar Button - Solo si tiene permisos */}
+      {canSubmitEvents && (
+        <Link
+          href="/submit-evento"
+          className="flex items-center justify-center w-10 h-10 rounded-lg bg-moto-orange hover:bg-moto-orange-dark transition-colors group relative"
+          title="Publicar Evento"
+        >
+          <Plus className="w-5 h-5 text-white" />
+          
+          {/* Tooltip on hover */}
+          <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Publicar
+          </span>
+        </Link>
+      )}
 
       {/* Spacer pequeño */}
       <div className="h-4" />
