@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, User, Shield, Edit2, Save, X, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { ArrowLeft, User, Shield, Edit2, Save, X, Loader2, CheckCircle, AlertCircle, Camera } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { ROLE_LABELS, ROLE_PERMISSIONS } from '@/types/auth';
 import { createClient } from '@/lib/supabase/client';
@@ -16,6 +16,7 @@ export default function ProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Form state
@@ -75,6 +76,56 @@ export default function ProfilePage() {
       router.push('/');
     }
   }, [loading, user, router]);
+
+  // Upload avatar to Supabase Storage
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validar tipo y tamaño (max 2MB)
+    if (!file.type.startsWith('image/')) {
+      setMessage({ type: 'error', text: 'Solo se permiten imágenes' });
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage({ type: 'error', text: 'La imagen no puede superar 2MB' });
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    setMessage(null);
+
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `avatars/${user.id}.${ext}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(path, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(path);
+
+      // Guardar URL en perfil
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
+
+      if (updateError) throw updateError;
+
+      setAvatarUrl(publicUrl);
+      await refreshProfile();
+      setMessage({ type: 'success', text: 'Avatar actualizado' });
+    } catch (err: any) {
+      setMessage({ type: 'error', text: err.message || 'Error al subir imagen' });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -166,8 +217,8 @@ export default function ProfilePage() {
     );
   }
 
-  const roleLabel = ROLE_LABELS[profile.role];
-  const permissions = ROLE_PERMISSIONS[profile.role];
+  const roleLabel = ROLE_LABELS[profile.role] ?? profile.role;
+  const permissions = ROLE_PERMISSIONS[profile.role] ?? ROLE_PERMISSIONS['viewer'];
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -258,27 +309,29 @@ export default function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Avatar */}
             <div className="flex flex-col items-center gap-4">
-              <div className="w-32 h-32 rounded-full bg-moto-orange flex items-center justify-center text-4xl font-bold text-white overflow-hidden">
-                {avatarUrl ? (
-                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{(fullName || user.email || 'U').charAt(0).toUpperCase()}</span>
-                )}
-              </div>
-              {isEditing && (
-                <div className="w-full">
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                    URL de Avatar
-                  </label>
-                  <input
-                    type="url"
-                    value={avatarUrl}
-                    onChange={(e) => setAvatarUrl(e.target.value)}
-                    placeholder="https://ejemplo.com/avatar.jpg"
-                    className="w-full px-3 py-2 text-sm border rounded-lg bg-background"
-                  />
+              <div className="relative">
+                <div className="w-32 h-32 rounded-full bg-moto-orange flex items-center justify-center text-4xl font-bold text-white overflow-hidden">
+                  {isUploadingAvatar ? (
+                    <Loader2 className="w-8 h-8 animate-spin text-white" />
+                  ) : avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span>{(fullName || user.email || 'U').charAt(0).toUpperCase()}</span>
+                  )}
                 </div>
-              )}
+                {/* Botón de upload siempre visible (no solo en modo edición) */}
+                <label className="absolute bottom-0 right-0 w-9 h-9 bg-moto-orange hover:bg-moto-orange-dark rounded-full flex items-center justify-center cursor-pointer shadow-md transition-colors">
+                  <Camera className="w-4 h-4 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                    disabled={isUploadingAvatar}
+                  />
+                </label>
+              </div>
+              <p className="text-xs text-muted-foreground">Máx. 2MB</p>
             </div>
 
             {/* Info */}

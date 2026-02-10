@@ -475,3 +475,26 @@
 ::selection {
   @apply bg-primary/30 text-foreground;
 }
+
+/* Calendar slide transitions */
+@keyframes slideOutLeft {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(-3%); }
+}
+@keyframes slideOutRight {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(3%); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(3%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-3%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-out-left  { animation: slideOutLeft  200ms ease-in  forwards; }
+.animate-slide-out-right { animation: slideOutRight 200ms ease-in  forwards; }
+.animate-slide-in-right  { animation: slideInRight  250ms ease-out forwards; }
+.animate-slide-in-left   { animation: slideInLeft   250ms ease-out forwards; }

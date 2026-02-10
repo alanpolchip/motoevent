@@ -46,7 +46,7 @@ export async function PATCH(
 
       if (request_data.request_type === 'contributor') {
         updateData.can_submit_events = true;
-        updateData.role = 'contributor';
+        // role se queda como 'user', solo se activa el flag
       } else if (request_data.request_type === 'moderator') {
         updateData.can_submit_events = true;
         updateData.can_moderate_events = true;

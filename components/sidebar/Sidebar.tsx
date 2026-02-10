@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Edit, Plus, Moon, Sun } from 'lucide-react';
+import { Edit, Plus, Moon, Sun, Shield, Menu, Info } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils/cn';
@@ -9,16 +9,20 @@ import { FilterSection, type ActiveFilters } from './FilterSection';
 import { UserButton } from '@/components/auth/UserButton';
 import { useAuth } from '@/lib/auth/AuthContext';
 
-type CalendarView = '1W' | '2W' | '4W';
+type CalendarView = '1D' | '3D' | '1W' | '2W' | '4W';
 
 interface SidebarProps {
   currentView?: CalendarView;
   onViewChange?: (view: CalendarView) => void;
   onFiltersChange?: (filters: ActiveFilters) => void;
+  /** Mobile: si el drawer está abierto */
+  isOpen?: boolean;
+  /** Mobile: cerrar drawer */
+  onClose?: () => void;
 }
 
-export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: SidebarProps) {
-  const views: CalendarView[] = ['1W', '2W', '4W'];
+export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange, isOpen = false, onClose }: SidebarProps) {
+  const views: CalendarView[] = ['1D', '3D', '1W', '2W', '4W'];
   const { theme, setTheme } = useTheme();
   const { canSubmitEvents, canModerateEvents, isAdmin } = useAuth();
   const [mounted, setMounted] = useState(false);
@@ -33,34 +37,50 @@ export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: S
   };
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-[60px] bg-card border-r border-border flex flex-col items-center py-6 gap-6 z-50">
+    <>
+      {/* Overlay backdrop — solo en mobile */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={onClose}
+          aria-hidden="true"
+        />
+      )}
+
+      {/*
+        Sidebar siempre position:fixed — sin overflow-hidden ni opacity ni will-change.
+        Esto evita crear un stacking context que rompería los position:fixed hijos
+        (AuthModal, dropdowns). El espacio se gestiona via paddingLeft en page.tsx.
+      */}
+      <aside className={cn(
+        "fixed left-0 top-0 h-screen w-[60px] bg-card border-r border-border",
+        "flex flex-col items-center py-6 gap-6 z-50",
+        "transition-transform duration-300 ease-in-out",
+        isOpen ? "translate-x-0" : "-translate-x-full",
+      )}>
       {/* User Button */}
       <UserButton />
 
       {/* Divider */}
       <div className="w-8 h-[1px] bg-border" />
 
-      {/* Logo MotoEvents */}
-      <Link 
-        href="/" 
-        className="flex items-center justify-center w-10 h-10 rounded-full bg-moto-orange hover:bg-moto-orange-dark transition-colors"
-        title="MotoEvents Calendar"
+      {/* Info / Landing page */}
+      <Link
+        href="/info"
+        className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muto-orange/10 hover:text-moto-orange transition-colors group relative"
+        title="Sobre MotoEvents"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="w-6 h-6 text-white"
-        >
-          <circle cx="5.5" cy="17.5" r="3.5" />
-          <circle cx="18.5" cy="17.5" r="3.5" />
-          <path d="M15 6a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-3 11.5V14l-3-3 4-3 2 3h2" />
-        </svg>
+        <Info className="w-5 h-5 text-muted-foreground group-hover:text-moto-orange transition-colors" />
+        <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+          Sobre MotoEvents
+        </span>
       </Link>
+
+      {/* Divider */}
+      <div className="w-8 h-[1px] bg-border" />
+
+      {/* Filter Section — entre logo y selector de vistas */}
+      <FilterSection onFiltersChange={onFiltersChange} />
 
       {/* Divider */}
       <div className="w-8 h-[1px] bg-border" />
@@ -80,10 +100,9 @@ export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: S
             title={`Vista ${view}`}
           >
             {view}
-            
             {/* Tooltip on hover */}
             <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              {view === '1W' ? '1 Semana' : view === '2W' ? '2 Semanas' : '4 Semanas'}
+              {view === '1D' ? '1 Día' : view === '3D' ? '3 Días' : view === '1W' ? '1 Semana' : view === '2W' ? '2 Semanas' : '4 Semanas'}
             </span>
           </button>
         ))}
@@ -91,9 +110,6 @@ export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: S
 
       {/* Spacer */}
       <div className="flex-1" />
-
-      {/* Filter Section */}
-      <FilterSection onFiltersChange={onFiltersChange} />
 
       {/* Spacer pequeño */}
       <div className="h-4" />
@@ -110,6 +126,22 @@ export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: S
           {/* Tooltip on hover */}
           <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
             Moderar
+          </span>
+        </Link>
+      )}
+
+      {/* Admin Panel - Solo admin */}
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted hover:bg-muted/80 transition-colors group relative"
+          title="Panel Admin"
+        >
+          <Shield className="w-5 h-5 text-moto-orange group-hover:text-moto-orange transition-colors" />
+
+          {/* Tooltip on hover */}
+          <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+            Panel Admin
           </span>
         </Link>
       )}
@@ -153,5 +185,6 @@ export function Sidebar({ currentView = '2W', onViewChange, onFiltersChange }: S
         </button>
       )}
     </aside>
+    </>
   );
 }

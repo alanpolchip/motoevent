@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 interface CalendarEvent {
@@ -19,6 +19,7 @@ interface BiweeklyViewProps {
   events: CalendarEvent[];
   currentDate: Date;
   onDateChange: (date: Date) => void;
+  onMenuToggle?: () => void;
 }
 
 interface DayCell {
@@ -29,54 +30,125 @@ interface DayCell {
   events: CalendarEvent[];
 }
 
-export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyViewProps) {
+export function BiweeklyView({ events, currentDate, onDateChange, onMenuToggle }: BiweeklyViewProps) {
   const router = useRouter();
 
-  // Scroll navigation
+  // ── Seamless slide transition ──────────────────────────────────────────
+  // Mantenemos la fecha "mostrada" internamente.
+  // Cuando currentDate cambia, renderizamos AMBAS grids en paralelo:
+  //   - outgoing: 0 → ±100%
+  //   - incoming: ∓100% → 0
+  // Sin gap, sin flash, totalmente seamless.
+  const [displayedDate, setDisplayedDate] = useState(currentDate);
+  const [pendingDate, setPendingDate]     = useState<Date | null>(null);
+  const [direction, setDirection]         = useState<'next' | 'prev' | null>(null);
+  // 'idle'  → solo grid activo
+  // 'ready' → ambas grids renderizadas en posición inicial (sin transition aún)
+  // 'sliding' → transition activa en ambas
+  const [phase, setPhase] = useState<'idle' | 'ready' | 'sliding'>('idle');
+
+  // Detectar cambio en currentDate prop → iniciar animación
+  useEffect(() => {
+    if (pendingDate) return; // ya hay una animación en curso
+    if (currentDate.getTime() === displayedDate.getTime()) return;
+
+    const dir = currentDate > displayedDate ? 'next' : 'prev';
+    setDirection(dir);
+    setPendingDate(currentDate);
+    setPhase('ready'); // primer render: grids en posición inicial sin transición
+  }, [currentDate]);
+
+  // Tras 'ready' (DOM pintado), activar transición en el siguiente frame
+  useLayoutEffect(() => {
+    if (phase === 'ready') {
+      requestAnimationFrame(() => setPhase('sliding'));
+    }
+  }, [phase]);
+
+  // Transición terminada → limpiar
+  const handleTransitionEnd = () => {
+    if (phase !== 'sliding') return;
+    setDisplayedDate(pendingDate!);
+    setPendingDate(null);
+    setDirection(null);
+    setPhase('idle');
+  };
+
+  // Navegar usando displayedDate (no el prop, que puede ir adelantado)
+  const doNavigate = (dir: 'next' | 'prev') => {
+    if (phase !== 'idle') return;
+    const newDate = new Date(displayedDate);
+    newDate.setDate(newDate.getDate() + (dir === 'next' ? 14 : -14));
+    onDateChange(newDate);
+  };
+
+  // Wheel con acumulador para evitar disparos múltiples
+  const scrollAccum = useRef(0);
+  const scrollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > 50) { // Threshold para evitar scroll accidental
-        e.preventDefault();
-        const newDate = new Date(currentDate);
-        if (e.deltaY > 0) {
-          // Scroll down = siguiente periodo
-          newDate.setDate(newDate.getDate() + 14);
-        } else {
-          // Scroll up = periodo anterior
-          newDate.setDate(newDate.getDate() - 14);
+      e.preventDefault();
+      scrollAccum.current += e.deltaY;
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
+      scrollTimer.current = setTimeout(() => {
+        if (Math.abs(scrollAccum.current) > 80) {
+          doNavigate(scrollAccum.current > 0 ? 'next' : 'prev');
         }
-        onDateChange(newDate);
-      }
+        scrollAccum.current = 0;
+      }, 50);
     };
-
     window.addEventListener('wheel', handleWheel, { passive: false });
-    return () => window.removeEventListener('wheel', handleWheel);
-  }, [currentDate, onDateChange]);
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      if (scrollTimer.current) clearTimeout(scrollTimer.current);
+    };
+  }, [displayedDate, phase]);
 
-  // Generate 2 weeks (14 days) starting from Monday of current week
-  const calendarDays = useMemo(() => {
-    const startOfWeek = new Date(currentDate);
-    const day = startOfWeek.getDay();
-    const diff = day === 0 ? -6 : 1 - day; // Adjust to Monday
-    startOfWeek.setDate(startOfWeek.getDate() + diff);
+  // ── Transforms ──────────────────────────────────────────────────────────
+  const TRANSITION = 'transform 320ms cubic-bezier(0.4, 0, 0.2, 1)';
 
+  const outgoingStyle: React.CSSProperties = {
+    position: 'absolute', inset: 0,
+    transform: phase === 'sliding'
+      ? `translateX(${direction === 'next' ? '-100%' : '100%'})`
+      : 'translateX(0)',
+    transition: phase === 'sliding' ? TRANSITION : 'none',
+    willChange: 'transform',
+  };
+
+  const incomingStyle: React.CSSProperties = {
+    position: 'absolute', inset: 0,
+    transform: phase === 'sliding'
+      ? 'translateX(0)'
+      : `translateX(${direction === 'next' ? '100%' : '-100%'})`,
+    transition: phase === 'sliding' ? TRANSITION : 'none',
+    willChange: 'transform',
+  };
+  // ────────────────────────────────────────────────────────────────────────
+
+  // Generate 14 days for any given date
+  const computeDays = (date: Date): DayCell[] => {
+    const start = new Date(date);
+    const dow = start.getDay();
+    start.setDate(start.getDate() + (dow === 0 ? -6 : 1 - dow));
     const days: DayCell[] = [];
-    
     for (let i = 0; i < 14; i++) {
-      const date = new Date(startOfWeek);
-      date.setDate(startOfWeek.getDate() + i);
-      
+      const d = new Date(start);
+      d.setDate(start.getDate() + i);
       days.push({
-        date,
-        dayNumber: date.getDate(),
-        isCurrentMonth: date.getMonth() === currentDate.getMonth(),
-        isToday: isSameDay(date, new Date()),
-        events: getEventsForDate(date, events),
+        date: d,
+        dayNumber: d.getDate(),
+        isCurrentMonth: d.getMonth() === date.getMonth(),
+        isToday: isSameDay(d, new Date()),
+        events: getEventsForDate(d, events),
       });
     }
-    
     return days;
-  }, [currentDate, events]);
+  };
+
+  const displayedDays = useMemo(() => computeDays(displayedDate), [displayedDate, events]);
+  const pendingDays   = useMemo(() => pendingDate ? computeDays(pendingDate) : [], [pendingDate, events]);
 
   function isSameDay(date1: Date, date2: Date): boolean {
     return (
@@ -102,23 +174,27 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
     });
   }
 
-  const goToPreviousWeeks = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() - 14);
-    onDateChange(newDate);
+  const goToPreviousWeeks = () => doNavigate('prev');
+  const goToNextWeeks    = () => doNavigate('next');
+  const goToToday        = () => { if (phase === 'idle') onDateChange(new Date()); };
+
+  // ── Touch swipe support ──────────────────────────────────────────────────
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    // Only trigger if horizontal movement dominates and is significant
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (dx < 0) doNavigate('next');
+    else        doNavigate('prev');
   };
 
-  const goToNextWeeks = () => {
-    const newDate = new Date(currentDate);
-    newDate.setDate(newDate.getDate() + 14);
-    onDateChange(newDate);
-  };
-
-  const goToToday = () => {
-    onDateChange(new Date());
-  };
-
-  const monthYearLabel = currentDate.toLocaleDateString('es-ES', {
+  const monthYearLabel = displayedDate.toLocaleDateString('es-ES', {
     month: 'long',
     year: 'numeric',
   });
@@ -128,10 +204,15 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Calendar Navigation Header */}
-      <div className="bg-card border-b px-6 py-4 flex items-center justify-between h-[60px]">
-        <div className="flex items-center gap-4">
+      <div className="bg-card border-b px-4 md:px-6 py-4 flex items-center justify-between h-[60px]">
+        <div className="flex items-center gap-2 md:gap-4">
+          {onMenuToggle && (
+            <button onClick={onMenuToggle} className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted hover:bg-muted/80 transition-colors" aria-label="Menú">
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
           {/* Navigation */}
           <div className="flex items-center gap-1">
             <button
@@ -177,12 +258,16 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
         ))}
       </div>
 
-      {/* Calendar grid - 2 rows of 7 columns */}
-      <div 
-        className="flex-1 grid grid-cols-7 grid-rows-2"
-        style={{ height: 'calc(100vh - 110px)' }}
-      >
-        {calendarDays.map((day, index) => (
+      {/* Calendar grid — contenedor con overflow hidden para el slide */}
+      <div className="flex-1 relative overflow-hidden" style={{ height: 'calc(100vh - 110px)' }}>
+
+        {/* Grid saliente (displayedDate) */}
+        <div
+          className="grid grid-cols-7 grid-rows-2 w-full h-full"
+          style={outgoingStyle}
+          onTransitionEnd={handleTransitionEnd}
+        >
+        {displayedDays.map((day, index) => (
           <div
             key={index}
             className={cn(
@@ -309,6 +394,83 @@ export function BiweeklyView({ events, currentDate, onDateChange }: BiweeklyView
             )}
           </div>
         ))}
+        </div>
+
+        {/* Grid entrante (pendingDate) — solo cuando hay animación */}
+        {pendingDate && (
+          <div
+            className="grid grid-cols-7 grid-rows-2 w-full h-full"
+            style={incomingStyle}
+          >
+          {pendingDays.map((day, index) => (
+            <div
+              key={index}
+              className={cn(
+                "border-r border-b relative overflow-hidden",
+                !day.isCurrentMonth && "bg-muted/10",
+                day.isToday && "ring-2 ring-moto-orange ring-inset"
+              )}
+            >
+              {day.events.length === 0 ? (
+                <>
+                  <div className={cn(
+                    "absolute top-2 right-2 z-20 text-sm font-bold px-2 py-1 rounded",
+                    day.isToday ? "bg-moto-orange text-white" : "text-muted-foreground"
+                  )}>
+                    {day.dayNumber}
+                  </div>
+                  <div className="w-full h-full" />
+                </>
+              ) : day.events.length === 1 ? (
+                <div
+                  onClick={() => handleEventClick(day.events[0].slug)}
+                  className="w-full h-full cursor-pointer relative group overflow-hidden"
+                  style={day.events[0].featured_image ? {
+                    backgroundImage: `url(${day.events[0].featured_image})`,
+                    backgroundSize: 'cover', backgroundPosition: 'center',
+                  } : { background: 'linear-gradient(135deg, #FF6B00 0%, #E55A00 100%)' }}
+                >
+                  <div className={cn(
+                    "absolute top-2 right-2 z-30 text-sm font-bold px-2 py-1 rounded shadow-lg",
+                    day.isToday ? "bg-moto-orange text-white" : "bg-white/90 text-gray-700"
+                  )}>{day.dayNumber}</div>
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 40%, rgba(0,0,0,0.3) 70%, transparent 100%)' }} />
+                  <div className="absolute inset-0 flex flex-col justify-end p-3 text-white">
+                    <h4 className="font-bold text-sm line-clamp-2 leading-tight mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{day.events[0].title}</h4>
+                    <div className="flex items-center gap-1 bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full w-fit">
+                      <MapPin className="w-3 h-3 flex-shrink-0 text-white" />
+                      <span className="text-xs line-clamp-1 font-medium text-white">{day.events[0].location_city}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-full flex relative">
+                  <div className={cn(
+                    "absolute top-2 right-2 z-30 text-sm font-bold px-2 py-1 rounded shadow-lg",
+                    day.isToday ? "bg-moto-orange text-white" : "bg-white/90 text-gray-700"
+                  )}>{day.dayNumber}</div>
+                  {day.events.map((event) => (
+                    <div
+                      key={event.id}
+                      onClick={() => handleEventClick(event.slug)}
+                      className="flex-1 cursor-pointer relative group overflow-hidden border-r last:border-r-0"
+                      style={event.featured_image ? {
+                        backgroundImage: `url(${event.featured_image})`,
+                        backgroundSize: 'cover', backgroundPosition: 'center',
+                      } : { background: 'linear-gradient(135deg, #FF6B00 0%, #E55A00 100%)' }}
+                    >
+                      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.3) 80%, transparent 100%)' }} />
+                      <div className="absolute inset-0 flex items-end p-2">
+                        <h4 className="font-bold text-xs text-white line-clamp-3 leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">{event.title}</h4>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { DayView } from './DayView';
+import { ThreeDayView } from './ThreeDayView';
 import { WeekView } from './WeekView';
 import { BiweeklyView } from './BiweeklyView';
 import { MonthView } from './MonthView';
-import { cn } from '@/lib/utils/cn';
 import type { ActiveFilters } from '@/components/sidebar/FilterSection';
 
 interface CalendarEvent {
@@ -15,63 +16,38 @@ interface CalendarEvent {
   location_city: string;
   event_type: string;
   featured_image?: string;
+  short_description?: string;
   slug: string;
 }
 
-type ViewType = '1W' | '2W' | '4W';
+type ViewType = '1D' | '3D' | '1W' | '2W' | '4W';
 
 interface CalendarViewProps {
   view: ViewType;
+  /** Controlled: current date (managed by page.tsx, persisted in URL) */
+  currentDate: Date;
+  onDateChange: (date: Date) => void;
   filters?: ActiveFilters;
+  onMenuToggle?: () => void;
 }
 
-export function CalendarView({ view, filters }: CalendarViewProps) {
+export function CalendarView({ view, currentDate, onDateChange, filters, onMenuToggle }: CalendarViewProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Smooth transition on date change
-  const handleDateChange = (newDate: Date) => {
-    setIsTransitioning(true);
-    setTimeout(() => {
-      setCurrentDate(newDate);
-      setTimeout(() => setIsTransitioning(false), 50);
-    }, 150);
-  };
-
-  // Fetch events
   useEffect(() => {
-    async function fetchEvents() {
-      try {
-        const response = await fetch('/api/eventos');
-        if (!response.ok) throw new Error('Error fetching events');
-        const data = await response.json();
-        setEvents(data);
-      } catch (error) {
-        console.error('Error loading events:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchEvents();
+    fetch('/api/eventos')
+      .then(r => r.json())
+      .then(data => setEvents(data))
+      .catch(err => console.error('Error loading events:', err))
+      .finally(() => setLoading(false));
   }, []);
 
-  // Apply filters to events
   const filteredEvents = useMemo(() => {
     if (!filters) return events;
-
     return events.filter((event) => {
-      // Filter by city
-      if (filters.cities.length > 0 && !filters.cities.includes(event.location_city)) {
-        return false;
-      }
-
-      // Filter by event type
-      if (filters.eventTypes.length > 0 && !filters.eventTypes.includes(event.event_type)) {
-        return false;
-      }
-
+      if (filters.cities.length > 0 && !filters.cities.includes(event.location_city)) return false;
+      if (filters.eventTypes.length > 0 && !filters.eventTypes.includes(event.event_type)) return false;
       return true;
     });
   }, [events, filters]);
@@ -84,18 +60,17 @@ export function CalendarView({ view, filters }: CalendarViewProps) {
     );
   }
 
-  // Render view based on selection
   const commonProps = {
     events: filteredEvents,
     currentDate,
-    onDateChange: handleDateChange,
+    onDateChange,
+    onMenuToggle,
   };
 
   return (
-    <div className={cn(
-      "transition-opacity duration-200",
-      isTransitioning ? "opacity-40" : "opacity-100"
-    )}>
+    <div className="h-screen overflow-hidden">
+      {view === '1D' && <DayView {...commonProps} />}
+      {view === '3D' && <ThreeDayView {...commonProps} />}
       {view === '1W' && <WeekView {...commonProps} />}
       {view === '2W' && <BiweeklyView {...commonProps} />}
       {view === '4W' && <MonthView {...commonProps} />}

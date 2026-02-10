@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 
 interface CalendarEvent {
@@ -19,6 +19,7 @@ interface MonthViewProps {
   events: CalendarEvent[];
   currentDate: Date;
   onDateChange: (date: Date) => void;
+  onMenuToggle?: () => void;
 }
 
 interface DayCell {
@@ -29,7 +30,7 @@ interface DayCell {
   events: CalendarEvent[];
 }
 
-export function MonthView({ events, currentDate, onDateChange }: MonthViewProps) {
+export function MonthView({ events, currentDate, onDateChange, onMenuToggle }: MonthViewProps) {
   const router = useRouter();
 
   // Scroll navigation
@@ -156,11 +157,31 @@ export function MonthView({ events, currentDate, onDateChange }: MonthViewProps)
     router.push(`/eventos/${slug}`);
   };
 
+  // ── Touch swipe support ──────────────────────────────────────────────────
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    const dy = e.changedTouches[0].clientY - touchStartY.current;
+    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.2) return;
+    if (dx < 0) goToNextMonth();
+    else        goToPreviousMonth();
+  };
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       {/* Calendar Navigation Header */}
-      <div className="bg-card border-b px-6 py-4 flex items-center justify-between h-[60px]">
-        <div className="flex items-center gap-4">
+      <div className="bg-card border-b px-4 md:px-6 py-4 flex items-center justify-between h-[60px]">
+        <div className="flex items-center gap-2 md:gap-4">
+          {onMenuToggle && (
+            <button onClick={onMenuToggle} className="flex items-center justify-center w-9 h-9 rounded-lg bg-muted hover:bg-muted/80 transition-colors" aria-label="Menú">
+              <Menu className="w-5 h-5" />
+            </button>
+          )}
           <div className="flex items-center gap-1">
             <button
               onClick={goToPreviousMonth}

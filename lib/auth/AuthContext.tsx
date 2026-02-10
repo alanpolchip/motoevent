@@ -16,18 +16,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const supabase = createClient();
 
-  // Cargar perfil del usuario
+  // Cargar perfil del usuario (crea uno si no existe)
   const loadProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) throw error;
+      // Si no existe el perfil, crearlo (el trigger puede haber fallado)
+      if (error && error.code === 'PGRST116') {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const { data: newProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            email: authUser?.email ?? '',
+            role: 'user',
+            can_submit_events: false,
+            can_moderate_events: false,
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        data = newProfile;
+      } else if (error) {
+        throw error;
+      }
+
       setProfile(data);
-      
+
       // Actualizar last_login_at
       await supabase
         .from('profiles')
@@ -126,17 +146,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Sign Out
   const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      setUser(null);
-      setProfile(null);
-      router.push('/');
-    } catch (error: any) {
-      console.error('Sign out error:', error);
-      throw new Error(error.message || 'Error al cerrar sesión');
-    }
+    // Limpiar estado local inmediatamente para respuesta instantánea en UI
+    setUser(null);
+    setProfile(null);
+    router.push('/');
+    // Invalidar sesión en Supabase en background
+    supabase.auth.signOut().catch((err) => {
+      console.error('Sign out error:', err);
+    });
   };
 
   // Refrescar perfil

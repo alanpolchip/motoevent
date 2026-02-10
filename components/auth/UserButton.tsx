@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { User, LogOut, UserCircle, Shield, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth/AuthContext';
@@ -11,6 +12,17 @@ export function UserButton() {
   const { user, profile, signOut, isAdmin, canModerateEvents } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  // Calcular posición del dropdown relativa al viewport
+  const openDropdown = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setDropdownPos({ top: rect.top, left: rect.right + 8 });
+    }
+    setShowDropdown(true);
+  };
 
   // Usuario no autenticado
   if (!user) {
@@ -44,7 +56,8 @@ export function UserButton() {
   return (
     <div className="relative">
       <button
-        onClick={() => setShowDropdown(!showDropdown)}
+        ref={btnRef}
+        onClick={openDropdown}
         className="flex items-center justify-center w-10 h-10 rounded-lg bg-moto-orange hover:bg-moto-orange-dark transition-colors group relative"
         title={displayName}
       >
@@ -66,17 +79,14 @@ export function UserButton() {
         </span>
       </button>
 
-      {/* Dropdown Menu */}
-      {showDropdown && (
+      {/* Dropdown — portal a document.body para evitar stacking context del sidebar */}
+      {showDropdown && typeof document !== 'undefined' && createPortal(
         <>
-          {/* Backdrop para cerrar */}
+          <div className="fixed inset-0 z-[9998]" onClick={() => setShowDropdown(false)} />
           <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowDropdown(false)}
-          />
-
-          {/* Menu */}
-          <div className="absolute left-full ml-2 top-0 w-64 bg-card border rounded-lg shadow-lg z-50 py-2">
+            className="fixed w-64 bg-card border rounded-lg shadow-xl z-[9999] py-2"
+            style={{ top: dropdownPos.top, left: dropdownPos.left }}
+          >
             {/* User Info */}
             <div className="px-4 py-3 border-b">
               <p className="font-medium text-sm truncate">{displayName}</p>
@@ -121,7 +131,8 @@ export function UserButton() {
               </button>
             </div>
           </div>
-        </>
+        </>,
+        document.body
       )}
     </div>
   );

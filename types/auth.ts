@@ -4,7 +4,7 @@
 
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
-export type UserRole = 'viewer' | 'contributor' | 'moderator' | 'admin';
+export type UserRole = 'user' | 'moderator' | 'admin';
 
 export interface UserProfile {
   id: string;
@@ -56,34 +56,28 @@ export interface ChangeRoleData {
 
 // Jerarquía de roles (para comparaciones)
 export const ROLE_HIERARCHY: Record<UserRole, number> = {
-  viewer: 0,
-  contributor: 1,
-  moderator: 2,
-  admin: 3,
+  user: 0,
+  moderator: 1,
+  admin: 2,
 };
 
 // Labels legibles para roles
 export const ROLE_LABELS: Record<UserRole, string> = {
-  viewer: 'Espectador',
-  contributor: 'Colaborador',
+  user: 'Usuario',
   moderator: 'Moderador',
   admin: 'Administrador',
 };
 
 // Descripción de permisos por rol
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
-  viewer: [
+  user: [
     'Ver eventos públicos',
     'Marcar favoritos (próximamente)',
     'Exportar a calendario (próximamente)',
   ],
-  contributor: [
-    'Todo lo de Espectador',
-    'Enviar eventos para moderación',
-    'Ver mis eventos enviados',
-  ],
   moderator: [
-    'Todo lo de Colaborador',
+    'Todo lo de Usuario',
+    'Enviar eventos para moderación',
     'Acceder al panel de moderación',
     'Aprobar/rechazar eventos',
     'Ver todos los eventos pendientes',

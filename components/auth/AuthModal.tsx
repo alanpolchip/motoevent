@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/AuthContext';
 import type { LoginFormData, SignUpFormData } from '@/types/auth';
@@ -18,6 +19,14 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signIn, signUp } = useAuth();
 
+  // Cerrar con Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [isOpen, onClose]);
+
   const [loginForm, setLoginForm] = useState<LoginFormData>({
     email: '',
     password: '',
@@ -30,7 +39,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
     fullName: '',
   });
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,27 +93,30 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
     }
   };
 
-  return (
+  // createPortal → renderiza en document.body, fuera de cualquier stacking context
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999]"
         onClick={onClose}
       />
 
-      {/* Modal */}
-      <div className="fixed inset-0 flex items-center justify-center z-50 p-4">
-        <div className="bg-card border rounded-xl shadow-2xl w-full max-w-md">
+      {/* Modal — mobile: sheet desde abajo. Desktop: centrado */}
+      <div className="fixed inset-0 flex items-end sm:items-center justify-center z-[9999] p-0 sm:p-4">
+        <div className="bg-card border-t sm:border rounded-t-2xl sm:rounded-xl shadow-2xl w-full sm:max-w-md max-h-[92vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
+          <div className="flex items-center justify-between p-5 border-b">
             <h2 className="text-xl font-bold">
               {activeTab === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
             </h2>
+            {/* Cruz visible para cerrar */}
             <button
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="flex items-center justify-center w-8 h-8 rounded-lg bg-muted hover:bg-muted/80 transition-colors"
+              aria-label="Cerrar"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
@@ -299,6 +311,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'login' }: AuthModalPr
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
